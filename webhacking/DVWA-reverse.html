@@ -3,27 +3,86 @@
 <body>
 <h3>Damn Vulnerable Web Application - Command execution + File upload = Reverse shell ;) </h3>
 
-Damn Vulnerable Web App (DVWA) is a PHP/MySQL web application that is damn vulnerable. Its main goals are to be an aid for security professionals to test their skills and tools in a legal environment, help web developers better understand the processes of securing web applications and aid teachers/students to teach/learn web application security in a class room environment.
+<p>
+Damn Vulnerable Web App (DVWA) is a PHP/MySQL web application that is damn vulnerable. Its main goals are to be an aid for security professionals to test their skills and tools in a legal environment, help web developers better understand the processes of securing web applications and aid teachers/students to teach/learn web application security in a class room environment. 
+</p>
 
-Well, when I first saw this vulnerable web application I thought that it was a good idea installing it in a Raspberry instead of installing it in a VM. This is a dummy idea and something you should never do cause... it's fucking vulnerable!
+<p>
+Well, when I first saw this vulnerable web application I thought that it was a good idea installing it in a Raspberry instead of installing it in a VM. This is a dummy idea and something you should never do cause... it's fucking vulnerable! 
+</p>
 
-One day, you know, when you remember you have a raspberry and could help you, I tried to log in but I forgot the username/password. F**k... I have to format the SD card and reinstall the OS. Thinking about the previous use of that awesome tool I figured out that I was learning some web hacking so... Why can't I hack my own raspberry?
+<p>
+One day, you know, when you remember you have a raspberry and could help you, I tried to log in but I forgot the username/password. F**k... I have to format the SD card and reinstall the OS. Thinking about the previous use of that awesome tool I figured out that I was learning some web hacking so... Why can't I hack my own raspberry? 
+</p>
 
-This post deals with some basic concepts on web hacking and how to p0wn the DVWA using a simple python reverse shell, file upload and command execution features. To success, I had to exploit two vulnerabilities (low difficulty - modify cookies if you want) and I finally got the shell.
+<p>
+This post deals with some basic concepts on web hacking and how to p0wn the DVWA using a simple python reverse shell, file upload and command execution features. To success, I had to exploit two vulnerabilities and I finally got the shell. The difficulty was "low" but, if you want to try hard, you can modify the cookie (remember it's not possible to modify the configuration file).
+</p>
 
 <h4> Exploit File Upload vulnerability </h4>
 
-First of all I tested this functionality that looks like the picture below.
+<p> The File Upload vulnerability looks like the picture below :</p>
 
 <img src="DVWA-reverse-resources/screenshots/file-upload/file-upload-1.png" />
 
+<p> First of all I tested this functionality by uploading a simple .txt file. </p> 
+
+<img src="DVWA-reverse-resources/screenshots/file-upload/file-upload-test.png" />
+
+<p> This functionality it's returning the path where the file is stored, that's fine (at least for me). Now, it's time to exec some commands.
+
 <h4> Exploit Command Execution vulnerability </h4>
+<p>
+Now, I know I can upload all files I want so... What if I upload a huge file to DoS it? Nope, it's out of scope. Let's see how the Command Execution vulnerability looks:
+</p>
+
+<img src="DVWA-reverse-resources/screenshots/command-exec/command-exec-1.png" />
+
+<p>It's a ping command! Let's check if it's possible to concatenate commands:</p>
+
+<img src="DVWA-reverse-resources/screenshots/command-exec/command-exec-ls.png" />
+
+<p>WoW, DVWA is using PHP. We can upload a PHP reverse shell and call it as we know we can upload files and execute commands for free. As I upload a python reverse shell, I need to verify if Python is installed: </p>
+
+<img src="DVWA-reverse-resources/screenshots/command-exec/command-exec-check-python.png" />
+
+<p> The message is printed so the shell is going to work. We know that files are uploaded in the <b>"hackable/uploads/" </b> directory, we have to move from the command execution path to the python reverse shell directory to launch it. Let's try first with a simple <b>"ls"</b> command: </p>
+
+<img src="DVWA-reverse-resources/screenshots/command-exec/command-exec-ls-uploaded-file.png" />
+
+<p> Here we go! We can move around the entire website. Let's check if it's possible to upload a Python file because some websites filter the file extension. I decided to upload my python reverse shell directly to save some time.</p>
+
+<img src="DVWA-reverse-resources/screenshots/file-upload/file-upload-reverse.png" />
 
 <h4> Where is my reverse shell? </h4>
 
+<p>
+We are reaching the end. All we have to do now is to listen with "nc" on the port wrote
+in the reverse shell file (1234 in this case) and launch the script from the website. The command launched was <b>"localhost; python ../../hackable/uploads/reverse-shell.py"</b>.</p>
+</p>
 
+<img src="DVWA-reverse-resources/screenshots/command-exec/command-exec-launch-shell.png" />
 
+<img src="DVWA-reverse-resources/screenshots/nc-listening.png" />
 
+<p>
+We have a shell with the website permissions so if it's running with root permissions we have powned them so hard. When I was inside the Raspberry, I read the <b>"/etc/passwd" </b> file and I noticed that I had forgotten the username, not the password. Using hacking skills to remember what my username was, so sad... </p>
+
+<h4> Conclusions </h4>
+
+<ul>
+	<li> Always check user input</li>
+	<li> If you allow users to upload files, check file extension and structure</li>
+	<li> If you allow users to execute commands, you have to build an entire castle around it</li>
+	<li> Run your applications with the lowest permission</li>
+	<li> Don't run vulnerable tools in real machines unless you want to remember your username or be powned in the worst scenario</li>
+</ul>
+
+See you!
+
+<h4> Additional information </h4>
+
+<p> I didn't check the directory "hackable/uploads" permissions. A step to configure DVWA consists on granting all permissions to the upload folder. It's always necessary before launching a file to verify if that path is executable. In my case, it wasn't necessary but it's worth to launch a simple "ls -l" command.</p>
 
 </body>
 </html>
