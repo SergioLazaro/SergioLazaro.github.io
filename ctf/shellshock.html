@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	 p {
+	     white-space: pre-line; /* collapse WS, preserve LB */
+	   }
+	</style>
+</head>
+<body>
+<h3> Shellshock - CVE-2014-6271 </h3>
+<p>
+Hi.
+
+In this post I'm going to talk about shellshock vulnerability and how to exploit it. Usually, this vulnerability can be found in web servers but in this post I'm going to test it with ubuntu. It's important to know that both examples, web server or directly on a machine, are similar.
+
+Looking for things to do I found a CTF game with the following code:
+
+#include &lt;stdio.h&gt;
+int main(){
+	&nbsp;setresuid(getegid(), getegid(), getegid());
+	&nbsp;setresgid(getegid(), getegid(), getegid());
+	&nbsp;system("/home/shellshock/bash -c 'echo shock_me'");
+	&nbsp;return 0;
+}
+
+There is a system call! Well, let's figure out how it works and how it could be exploited.
+
+First of all, let's check the <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-6271"> CVE-2014-6271 </a>. Ok, the problem is how GNU Bash process function definitions in the environment variables. We have to play with env vars to execute code and exploit the vulnerability to gain root.
+
+Just by typing on Google "Shellshock poc" I found a repository on <a href="https://github.com/mubix/shellshocker-pocs"> Github </a> with everything we need:
+
+<img src="shellshock/payload.png" />
+
+It's something similar. Let's create our environment variable and exploit it:
+
+<img src="shellshock/payload2.png" />
+
+It was easy. We ran code. Basically, Bash evaluates every environment variable without any filter so, if Bash finds a function, bash will run it. 
+
+Finally, we have to get our flag:
+
+<img src="shellshock/flag.png" />
+</p>
+</body>
